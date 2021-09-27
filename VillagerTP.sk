@@ -1,0 +1,155 @@
+
+#================================================#
+#			VillagerTP V1 by ImCardiaK			 #
+#================================================#
+
+#========================================================================================#
+options:
+
+	L: &7[&3Villager&bTP&7]
+	NameOfVillager: &bBob The Magician
+	
+#==========================================================================================#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+on join:
+	set {pnjpvp.%player%} to 0
+
+command /vadm <text> [<text>]:
+	permission: villager.admin
+	aliases: villagertpadmin
+	usage: {@L} /vadm <add / del / pnj> <Name>
+	trigger:
+		Vadmin(arg-1, arg-2, player)
+
+
+
+
+function Vadmin(t: text, a: text, p: player):
+	if {_t} is "add":
+		if {_a} is set:
+			if {_p}'s tool is not air:
+				set {tplist::%{_a}%} to {_p}'s location
+				set {tplist::%{_a}%::item} to {_p}'s tool
+				send "{@L} You have set the teleportation &a%{tplist::%{_a}%}%&7 with the price in item &a%{tplist::%{_a}%::item}%" to {_p}
+			else:
+				set {tplist::%{_a}%} to {_p}'s location
+				set {tplist::%{_a}%::item}  to "&bFree"
+				send "{@L} There was nothing in your hand, teleportation is therefore &bFree &7!" to {_p}
+		else:
+			send "{@L} What is the name of your teleportation?" to {_p}
+	if {_t} is "del":
+		if {_a} is set:
+			if {tplist::%{_a}%} is set:
+				send "{@L} You removed the teleportation &b%{tplist::%{_a}%}%" to  {_p}
+				clear {tplist::%{_a}%}
+			else:
+				send "{@L} This teleportation does not exist !" to {_p}
+		else:
+			send "{@L} What is the name of your teleportation?" to {_p}
+	if {_t} is "pnj":
+		send "{@L} A teleporter has appeared!" to {_p}
+		send "&7Give it a shot to kill it!" to {_p}
+		spawn a villager at {_p}
+		set name of spawned villager to "{@NameOfVillager}"
+		set {_loc} to location of block at spawned villager
+		loop all villagers in radius 1 of block at {_loc}:
+			set {_villager} to loop-entity
+		while health of {_villager} is more than 0:
+			wait 5 seconds
+			teleport {_villager} to {_loc}
+
+
+
+#============================================================================================#
+
+on rightclick on villager:
+	if name of entity is "{@NameOfVillager}":
+		cancel event
+		wait 1 ticks
+		execute player command "/vtp"
+#============================================================================================#
+
+on damage:
+	if victim is a villager:
+		if attacker has permission "vtpadmin.killpnj":
+			if name of victim is "{@NameOfVillager}":
+				kill victim
+				send "{@L} &cYou killed {@NameOfVillager} &c! :O" to attacker
+		else:
+			cancel event
+			add 1 to {pnjpvp.%attacker%}
+			chance of 25%:
+				send "{@L} &cI advise you to stop immediately!" to attacker
+			if {pnjpvp.%attacker%} = 5:
+				push attacker backwards at speed 2.0
+				send attacker title "&c&lStop !" with subtitle "&kargzqg" for 2 seconds
+				set {pnjpvp.%attacker%} to 0
+#============================================================================================#
+
+command /vtp:
+	permission: VillagerTP.tp
+	aliases: villagertp
+	trigger:
+		open virtual chest inventory with size 6 with title "&7Teleport menu" to player
+		wait 3 ticks 
+		set {_slot} to 0
+		set {_s} to 0
+		loop 6 times:
+			add 1 to {_ligne}
+			set {_s} to 0
+			loop 9 times:
+				format gui slot {_s} + 9*({_ligne} - 1) of player with red stained glass pane to do nothing
+				add 1 to {_s}
+			set {_s} to 0
+			wait 2 ticks
+			loop 9 times:
+				format gui slot {_s} + 9*({_ligne} - 1) of player with black stained glass pane to do nothing
+				add 1 to {_s}
+			wait 2 tick
+		loop {tplist::*}:
+			wait 1 tick
+			set {_item} to a compass named "&7[&b%loop-index%&7]"
+			set line 1 of lore of {_item} to "&7<-------------------->"
+			set line 2 of lore of {_item} to "&fTeleport to » &3%loop-index%&f !"
+			set line 3 of lore of {_item} to "&fPrice (item required) » &3%{tplist::%loop-index%::item}%&f !"
+			set line 4 of lore of {_item} to "&7<-------------------->"
+			format gui slot {_slot} of player with {_item} to close then run function VTp(player, loop-index)
+			add 1 to {_slot}
+#============================================================================================#
+function VTp(p: player, a: text):
+	if {tplist::%{_a}%} is set:
+		set {_item} to {tplist::%{_a}%::item}
+		if {_p} has "%{_item}%" parsed as item:
+			teleport {_p} to {tplist::%{_a}%}
+			remove "%{_item}%" parsed as item from {_p}'s inventory
+			send "{@L} You have been teleported!" to {_p}
+		else if {tplist::%{_a}%::item} is "&bFree":
+			teleport {_p} to {tplist::%{_a}%}
+			send "{@L} You have been teleported!" to {_p}
+		else:
+			send "{@L} &cYou don't have the required item!" to {_p}
+#============================================================================================#
