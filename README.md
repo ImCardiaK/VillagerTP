@@ -1,7 +1,14 @@
 # VillagerTP
 Create teleportation points and make your players pay with items!
 
-
+ Need of:
+ - TuSKe
+ - SkRayFall
+ - SkQuery
+ - Sk-NbeeT
+ - Skellett-Legacy
+ - SkBee
+--------------
 The script is slightly less configurable than the other scripts already carried out previously .. But it remains configurable for the bases! and in any case, the creation of a teleportation point(and the price in item) is done in games!
 ----
 
